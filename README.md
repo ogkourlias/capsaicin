@@ -18,4 +18,4 @@ We collected the following parameters from 5 participants for our analysis.
 - Cholestrol (mmol/L)
 - Cortisol (nmol/L)
 - Glucose(mmol/l)
-- Micro Biome
+- Microbiome culture
