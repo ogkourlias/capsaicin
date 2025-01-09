@@ -1,0 +1,31 @@
+# Imports
+import os
+import glob
+
+# Config params
+configfile: "./config/main.yaml"
+workdir: config["workdir"]
+tooldir = config["tooldir"]
+
+# Get all FASTQ files in the directory
+fastq_dir = config["fastq"]["dir"]
+fastq_files = glob.glob(os.path.join(fastq_dir, "*.fastq"))
+
+# Extract sample names from the filenames
+samples = [os.path.splitext(os.path.basename(f))[0] for f in fastq_files]
+
+rule all:
+    input:
+        expand("{fastq_dir}/{sample}-fastp.fastq", fastq_dir=fastq_dir, sample=samples)
+
+rule fastp:
+    conda:
+        "microbiome"
+    input:
+        "{fastq_dir}/{sample}.fastq"
+    output:
+        "{fastq_dir}/{sample}-fastp.fastq"
+    shell:
+        """
+        fastp -i {input} -o {output}
+        """
