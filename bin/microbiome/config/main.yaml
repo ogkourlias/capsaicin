@@ -1,0 +1,7 @@
+workdir: "/path/to/dir"
+tooldir: "/path/to/dir"
+kraken2:
+  db: "/path/to/dir"
+fastq:
+  dir: "/path/to/dir"
+production: "/path/to/dir"
