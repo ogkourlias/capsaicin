@@ -5,3 +5,4 @@
 .snakemake/*
 .snakemake
 *.fastq
+temp_copy
