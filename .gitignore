@@ -1,0 +1,7 @@
+*.log
+*.html
+*.json
+*.out
+.snakemake/*
+.snakemake
+*.fastq
