@@ -1,4 +1,4 @@
-# Capsacin
+# Capsaicin
 Repository housing the Capsaicin project we worked on for the first semester of the data-science master
 This repo contains the scripts used to create figures and analyse bioemtric data collected from 5 participants.
 
@@ -27,6 +27,6 @@ We collected the following parameters from 5 participants for our analysis.
 
 ### Contacts
 O. Gkourlias: o.gkourlias@st.hanze.nl
-J. Bergman: j.l.c.bergman@st.hanze.nl
+J.L.C. Bergman: j.l.c.bergman@st.hanze.nl
 R. Boabeng:r.boabeng@st.hanze.nl
 B. Lingen: b.van.lingen@st.hanze.nl
