@@ -1,6 +1,7 @@
 *.log
 *.html
 *.json
+*.csv
 *.out
 .snakemake/*
 .snakemake
