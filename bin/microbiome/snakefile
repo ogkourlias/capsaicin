@@ -10,13 +10,14 @@ tooldir = config["tooldir"]
 # Get all FASTQ files in the directory
 fastq_dir = config["fastq"]["dir"]
 fastq_files = glob.glob(os.path.join(fastq_dir, "*.fastq"))
+kraken2_db = config["kraken2"]["db"]
 
 # Extract sample names from the filenames
 samples = [os.path.splitext(os.path.basename(f))[0] for f in fastq_files]
 
 rule all:
     input:
-        expand("{fastq_dir}/{sample}-fastp.fastq", fastq_dir=fastq_dir, sample=samples)
+        expand("{fastq_dir}/kraken2/{sample}.kraken2", fastq_dir=fastq_dir, sample=samples)
 
 rule fastp:
     conda:
@@ -24,8 +25,57 @@ rule fastp:
     input:
         "{fastq_dir}/{sample}.fastq"
     output:
-        "{fastq_dir}/{sample}-fastp.fastq"
+        "{fastq_dir}/fastp/{sample}-fastp.fastq"
     shell:
         """
         fastp -i {input} -o {output}
+        """
+
+rule kraken2:
+    resources:
+        mem_mb=48000
+    conda:
+        "microbiome"
+    input:
+        "{fastq_dir}/fastp/{sample}-fastp.fastq"
+    output:
+        "{fastq_dir}/kraken2/{sample}.kraken2"
+    shell:
+        """
+        kraken2 {input} --memory-mapping --db {kraken2_db} --threads 2 --output {output}
+        """
+
+rule bracken:
+    conda:
+        "microbiome"
+    input:
+        "{fastq_dir}/{sample}-fastp.fastq"
+    output:
+        "{fastq_dir}/{sample}-kraken2.fastq"
+    shell:
+        """
+        kraken2 ../../test_files/test1-fastp.fastq --db /data/datasets/KRAKEN2_INDEX/k2_standard/ --threads 2 --output test.report
+        """
+
+rule krona:
+    conda:
+        "microbiome"
+    input:
+        "{fastq_dir}/{sample}-fastp.fastq"
+    output:
+        "{fastq_dir}/{sample}-kraken2.fastq"
+    shell:
+        """
+        kraken2 ../../test_files/test1-fastp.fastq --db /data/datasets/KRAKEN2_INDEX/k2_standard/ --threads 2 --output test.report
+        """
+rule multiqc:
+    conda:
+        "microbiome"
+    input:
+        "{fastq_dir}/{sample}-fastp.fastq"
+    output:
+        "{fastq_dir}/{sample}-kraken2.fastq"
+    shell:
+        """
+        kraken2 ../../test_files/test1-fastp.fastq --db /data/datasets/KRAKEN2_INDEX/k2_standard/ --threads 2 --output test.report
         """
