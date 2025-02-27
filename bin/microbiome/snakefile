@@ -9,23 +9,41 @@ tooldir = config["tooldir"]
 
 # Get all FASTQ files in the directory
 fastq_dir = config["fastq"]["dir"]
-fastq_files = glob.glob(os.path.join(fastq_dir, "*.fastq"))
 kraken2_db = config["kraken2"]["db"]
 
+fastq_files = []
+for i in range(1, 21):
+    barcode_txt = f"barcode{str(i).zfill(2)}"
+    if i < 11:
+        fastq_files.extend(glob.glob(f"{fastq_dir}/chili1/*/fastq_pass/{barcode_txt}/*.fastq.gz", recursive=True))
+    else:
+        fastq_files.extend(glob.glob(f"{fastq_dir}/chili2/*/fastq_pass/{barcode_txt}/*.fastq.gz", recursive=True))
+
+# Writing input file names for logging purposes
+# with open("input-files.txt", "w+") as input_log:
+#     for name in fastq_files:
+#         input_log.write(name + "\n")
+
+
 # Extract sample names from the filenames
-samples = [os.path.splitext(os.path.basename(f))[0] for f in fastq_files]
+barcodes = [fastq_file.split("/")[-1].split("_")[2] for fastq_file in fastq_files]
+barcodes = set(barcodes)
+filenames = [fastq_file.split("/")[-1].split(".")[0] for fastq_file in fastq_files]
+chilis = ["chili1", "chili2"]
+dates = ["20250205_1236_MN36331_FBA39386_39421a12", "20250205_1236_MN19155_FBA42409_7f95ef4d"]
+
 
 rule all:
     input:
-        expand("{fastq_dir}/kraken2/{sample}.kraken2", fastq_dir=fastq_dir, sample=samples)
-
+        expand("{fastq_dir}/output/kraken2/{sample}-report.txt", sample=filenames, fastq_dir=fastq_dir)
+       
 rule fastp:
     conda:
         "microbiome"
     input:
-        "{fastq_dir}/{sample}.fastq"
+        "{fastq_dir}/input/{sample}.fastq.gz"
     output:
-        "{fastq_dir}/fastp/{sample}-fastp.fastq"
+        "{fastq_dir}/output/{sample}-fastp.fastq"
     shell:
         """
         fastp -i {input} -o {output}
@@ -34,48 +52,15 @@ rule fastp:
 rule kraken2:
     resources:
         mem_mb=48000
+    threads: 2
     conda:
         "microbiome"
     input:
-        "{fastq_dir}/fastp/{sample}-fastp.fastq"
+        "{fastq_dir}/output/{sample}-fastp.fastq"
     output:
-        "{fastq_dir}/kraken2/{sample}.kraken2"
+        "{fastq_dir}/output/kraken2/{sample}-report.txt",
+        "{fastq_dir}/output/kraken2/{sample}-kraken2.txt"
     shell:
         """
-        kraken2 {input} --memory-mapping --db {kraken2_db} --threads 2 --output {output}
-        """
-
-rule bracken:
-    conda:
-        "microbiome"
-    input:
-        "{fastq_dir}/{sample}-fastp.fastq"
-    output:
-        "{fastq_dir}/{sample}-kraken2.fastq"
-    shell:
-        """
-        kraken2 ../../test_files/test1-fastp.fastq --db /data/datasets/KRAKEN2_INDEX/k2_standard/ --threads 2 --output test.report
-        """
-
-rule krona:
-    conda:
-        "microbiome"
-    input:
-        "{fastq_dir}/{sample}-fastp.fastq"
-    output:
-        "{fastq_dir}/{sample}-kraken2.fastq"
-    shell:
-        """
-        kraken2 ../../test_files/test1-fastp.fastq --db /data/datasets/KRAKEN2_INDEX/k2_standard/ --threads 2 --output test.report
-        """
-rule multiqc:
-    conda:
-        "microbiome"
-    input:
-        "{fastq_dir}/{sample}-fastp.fastq"
-    output:
-        "{fastq_dir}/{sample}-kraken2.fastq"
-    shell:
-        """
-        kraken2 ../../test_files/test1-fastp.fastq --db /data/datasets/KRAKEN2_INDEX/k2_standard/ --threads 2 --output test.report
+        kraken2 {input} --memory-mapping --db {kraken2_db} --threads 2 --output {output[0]} --report {output[1]} --use-mpa-style
         """
