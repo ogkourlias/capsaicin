@@ -1,1 +1,4 @@
-weight_file: updated_Data_Results(Jean).csv
+analysis_file1: '../1.csv'
+analysis_file2: '../2.csv'
+analysis_file3: '../3.csv'
+analysis_file4: '../4.csv'
